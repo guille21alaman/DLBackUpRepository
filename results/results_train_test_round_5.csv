@@ -1,0 +1,2 @@
+model;stock;round;train_accuracy;test_accuracy
+LSTM_withLags;5;AAPL.csv;0,4692805173807599;0,35802469135802467

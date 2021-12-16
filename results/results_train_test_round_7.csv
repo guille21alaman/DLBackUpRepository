@@ -1,0 +1,2 @@
+model;stock;round;train_accuracy;test_accuracy
+Transformer;7;AAPL.csv;0,7299919159256265;0,5163934426229508
