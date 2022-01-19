@@ -51,6 +51,8 @@ def preprocess(raw_data, columns, cutoffDate, train_end, test_begin, test_end, s
     train = {}
     test = {}
 
+
+
     for file in raw_data:
 
         print("Current stock processed: ", file)
@@ -58,9 +60,12 @@ def preprocess(raw_data, columns, cutoffDate, train_end, test_begin, test_end, s
         #select only columns to  be used later
         data[file] = raw_data[file][columns]
 
+
         #filter out dates
         #add 1 year more to compute metrics (i.e. Moving averages etc.) - will generate nulls - then again filter out dates after everything
-        data[file] = data[file].loc[datetime.date(year=cutoffDate[2]-1, month=cutoffDate[1], day=cutoffDate[0]):datetime.date(year=test_end[2], month=test_end[1], day=test_end[0])]
+        data[file] = data[file].loc[datetime.date(year=cutoffDate[2]-2, month=cutoffDate[1], day=cutoffDate[0]):datetime.date(year=test_end[2], month=test_end[1], day=test_end[0])]
+        
+        print("Data used", data[file].iloc[0].name)
 
         #calculate percentage increase of close price (target) - do it for an interval of days 
         for shiftDay in shiftDays:
@@ -72,12 +77,11 @@ def preprocess(raw_data, columns, cutoffDate, train_end, test_begin, test_end, s
             data[file]["target%sIncrease%sDays" %(target, shiftDay)] = data[file]["target%sIncrease%sDays" %(target, shiftDay)].shift(-shiftDay)
 
 
-
         #lagged prices - also to be used in prediction
         for lag in lags:
             data[file]["close_lag_%s" %lag] = data[file][target].shift(lag)
 
-
+        
         #technical indicators - A list is provided and indicators are only computed if and only if they are in the provided list
 
         #OVERLAP STUDIES
@@ -178,9 +182,14 @@ def preprocess(raw_data, columns, cutoffDate, train_end, test_begin, test_end, s
             for timeperiod in [5,10,14,20,25]:
                 column_name = "DX_Days_%s" %timeperiod
                 data[file][column_name] = talib.DX(data[file]["high"], data[file]["low"], data[file][target], timeperiod)
+        
+
 
         #filter out dates again
         data[file] = data[file].loc[datetime.date(year=cutoffDate[2], month=cutoffDate[1], day=cutoffDate[0]):datetime.date(year=test_end[2], month=test_end[1], day=test_end[0])]
+
+        missing = data[file].isna().sum()
+
 
         #In the end, drop rows with NaNs
         data[file] = data[file].dropna()
@@ -201,6 +210,16 @@ def preprocess(raw_data, columns, cutoffDate, train_end, test_begin, test_end, s
         #train / test split
         train[file] = data[file].loc[:datetime.date(year=train_end[2], month=train_end[1], day=train_end[0])]
         test[file] = data[file].loc[datetime.date(year=test_begin[2], month=test_begin[1], day=test_begin[0]):]
+
+
+        print("Shape train:" , train[file].shape)
+        print("start date train: ", train[file].iloc[0].name)
+        print("end date train: ", train[file].iloc[-1].name)
+        print("train date end: ", train_end)
+
+        print("Shape test: ", test[file].shape)
+        print("start date test: ", test[file].iloc[0].name)
+        print("end date test: ", test[file].iloc[-1].name)
 
     return train, test 
 

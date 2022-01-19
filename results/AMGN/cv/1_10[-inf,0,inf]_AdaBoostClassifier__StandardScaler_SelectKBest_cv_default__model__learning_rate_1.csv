@@ -1,0 +1,2 @@
+mean_fit_time;std_fit_time;mean_score_time;std_score_time;param_SelectKBest__k;param_model__learning_rate;param_model__n_estimators;params;split0_test_score;split1_test_score;split2_test_score;split3_test_score;split4_test_score;mean_test_score;std_test_score;rank_test_score
+3,9949506282806397;1,5815233698011015;0,07129154205322266;0,01820968846847472;80;1;350;{'SelectKBest__k': 80, 'model__learning_rate': 1, 'model__n_estimators': 350};0,3907766990291262;0,4368932038834951;0,6116504854368932;0,5315533980582524;0,4174757281553398;0,47766990291262135;0,08208621599539499;1

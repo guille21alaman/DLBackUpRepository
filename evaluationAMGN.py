@@ -44,15 +44,13 @@ import plotly.express as px
 #LOAD TEST DATA
 
 #api key for alpha vantage
-key = "Y7YNVWLSGI38NHOJ"
+key = "NJ2LVL4T520AY4WJ"
 
 #data
-symbols = ['AMGN']
+symbols = ['NKE']
 
 #time series object
 ts = TimeSeries(key, output_format="pandas")
-
-saveData(symbols, ts) #Function located in Load_API_Data.py
 
 basic_columns = ["open", "high", "low", "close", "adjustedClose", "volume", "dividendAmount", "SplitCoefficient"]
 directory_load = "data"
@@ -64,7 +62,7 @@ raw_data = loadData(directory_load, basic_columns) #Function located in Load_API
 cutoffDate_train = [7,10,2009]
 train_end = [31,12,2019]
 cutoffDate = [1,1,2021]
-test_end = [14,12,2021]
+test_end = [15,12,2021]
 
 #features to be used
 target = "adjustedClose"
@@ -110,144 +108,28 @@ def print_evaluation(predictions, y_true):
     print("- Precision macro:\n", precision_macro)
     print("- Confusion Matrix:\n ", cm)
 
+    return cm
+
 
 #LOAD BEST MODELS
 
-# # Price direction 5 days - AMGN 
+# # Price direction 10 days - AMGN 
 # # Ada Boost with the parameters shown in output:
-model_path = "results/AMGN/models/4_5[-inf,0,inf]_AdaBoostClassifier__StandardScaler_PCA_SelectKBest_cv_default__model__learning_rate_1_1.1_1.5.joblib"
+model_path = "results/AMGN/models/1_10[-inf,0,inf]_AdaBoostClassifier__StandardScaler_SelectKBest_cv_default__model__learning_rate_1.joblib"
 model = load(model_path)
-column_name = "targetadjustedCloseIncrease5Days_[-inf, 0, inf]"
+column_name = "targetadjustedCloseIncrease10Days_[-inf, 0, inf]"
 print("\n\n\nModel: ", model)
 print("\nTarget: ", column_name)
 
 
-predictions = model.predict(X_test["AMGN.csv"])
-print_evaluation(Y_test["AMGN.csv"][column_name], predictions)
+predictions = model.predict(X_test[symbols[0]+".csv"])
+predictions = pd.Series(predictions)
+cm = print_evaluation(Y_test[symbols[0]+".csv"][column_name], predictions)
 
 
-print(Y_test["AMGN.csv"][column_name].value_counts())
-exit()
+print("\n - Test values:\n ", Y_test[symbols[0]+".csv"][column_name].value_counts())
+print("\n - Predicted values:\n ", predictions.value_counts())
 
 
-########################################################################################################################################################################################################################################
-
-# # Price direction 10 days - AMGN --> >50% class precision for both classes in validation set
-# #LSTM with following architecture:
-# model_path = "results/AMGN/DL_Results/model/round_4_LSTM_10Days_[-inf, 0, inf]_accuracy_0.6"
-# model = keras.models.load_model(model_path)
-# column_name = "targetadjustedCloseIncrease10Days_[-inf, 0, inf]"
-# print("\n\n\nModel: ")
-# model.summary()
-# print("\nTarget: ", column_name)
-
-# #modify data
-# #note that there will be less samples for evaluation of this one (due to the modifications - 60 time step)
-
-# # Select columns for prediction (all but lags - redundancy)
-# cols = []
-# for c in X_test["AMGN.csv"].columns:
-#     if "lag" not in c: #it was trained without lags, so...
-#         cols.append(c)
-
-# x_train = X_train["AMGN.csv"][cols]
-# x_test = X_test["AMGN.csv"][cols]
-
-
-# original_x_t_train = X_train["AMGN.csv"][cols].copy()
-# original_x_test = X_test["AMGN.csv"][cols].copy()
-# original_y_train = Y_train["AMGN.csv"].copy()
-# original_y_test = Y_test["AMGN.csv"].copy()
-
-# #scale data
-# sc = StandardScaler()
-# training_set_scaled = sc.fit_transform(x_train) 
-# test_set_scaled = sc.transform(x_test)
-
-# #reshape
-# n = 60
-# n_rows_test = test_set_scaled.shape[0]
-# n_columns_test = test_set_scaled.shape[1]
-
-
-# X_test = []
-
-# #create lagged test set
-# for i in range(n+1,n_rows_test+1):
-#     X_test.append(test_set_scaled[i-n:i,:])
-
-# #convert to np array and reshape 
-# X_test = np.array(X_test)
-# X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], n_columns_test))
-
-# #predict
-# predicted_stock_price = model.predict(X_test)
-# predicted_stock_price_labels = np.argmax(predicted_stock_price, axis=-1)
-
-
-# target_test_labels = original_y_test.iloc[n:,-1] -1
-
-# print_evaluation(target_test_labels, predicted_stock_price_labels)
-
-
-########################################################################################################################################################################################################################################
-
-
-
-# Market opportunity 10 days - AMGN 
-#LSTM with following architecture:
-model_path = "results/AMGN/DL_Results/model/round_5_LSTM_withLags_10Days_[-inf, -1.5, 1.5, inf]_accuracy_0.5"
-model = keras.models.load_model(model_path)
-column_name = "targetadjustedCloseIncrease10Days_[-inf, -1.5, 1.5, inf]"
-print("\n\n\nModel: ")
-model.summary()
-print("\nTarget: ", column_name)
-
-#modify data
-#note that there will be less samples for evaluation of this one (due to the modifications - 60 time step)
-
-# Select columns for prediction (all but lags - redundancy)
-cols = []
-for c in X_test["AMGN.csv"].columns:
-    # if "lag" not in c: #it was trained with lags, so this should be commented
-        cols.append(c)
-
-x_train = X_train["AMGN.csv"][cols]
-x_test = X_test["AMGN.csv"][cols]
-
-
-original_x_t_train = X_train["AMGN.csv"][cols].copy()
-original_x_test = X_test["AMGN.csv"][cols].copy()
-original_y_train = Y_train["AMGN.csv"].copy()
-original_y_test = Y_test["AMGN.csv"].copy()
-
-#scale data
-sc = StandardScaler()
-training_set_scaled = sc.fit_transform(x_train) 
-test_set_scaled = sc.transform(x_test)
-
-#reshape
-n = 60
-n_rows_test = test_set_scaled.shape[0]
-n_columns_test = test_set_scaled.shape[1]
-
-
-X_test = []
-
-#create lagged test set
-for i in range(n+1,n_rows_test+1):
-    X_test.append(test_set_scaled[i-n:i,:])
-
-#convert to np array and reshape 
-X_test = np.array(X_test)
-X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], n_columns_test))
-
-#predict
-predicted_stock_price = model.predict(X_test)
-predicted_stock_price_labels = np.argmax(predicted_stock_price, axis=-1)
-
-
-target_test_labels = original_y_test.iloc[n:,-2] -1
-
-print_evaluation(target_test_labels, predicted_stock_price_labels)
-
+print("- Precision of decrease: ", precision_score(Y_test[symbols[0]+".csv"][column_name], predictions))
+print("- Precision of increase:", cm[1,1]/(cm[1,1]+cm[1,0]))

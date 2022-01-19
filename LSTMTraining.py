@@ -138,7 +138,7 @@ print("#############################################\nStarting ML Experimentatio
 key = "Y7YNVWLSGI38NHOJ"
 
 #data
-symbols = ['AAPL', 'TSLA', 'AMGN']
+symbols = ['AMGN']
 
 #time series object
 ts = TimeSeries(key, output_format="pandas")
@@ -278,13 +278,13 @@ dropout = 0.15
 patience = 5
 loss = "categorical_crossentropy"
 optimizer = "adam"
-experiment_round = 5
-model_name = "LSTM_withLags"
+experiment_round = 8
+model_name = "LSTM_repeatRound4"
 
 # Select columns for prediction (all but lags - redundancy)
 cols = []
-for c in Xtrain["AAPL.csv"].columns:
-    # if "lag" not in c: 
+for c in Xtrain["AMGN.csv"].columns:
+    if "lag" not in c: 
         cols.append(c)
 
 #loop over all the stocks 
@@ -311,29 +311,20 @@ for stock in symbols:
 
         #TODO - Delete
         #selection of targets according to results analysis
-        if "AAPL" in stock:
-            if "5Days" in column_name:
-                if "0" in column_name:
-                    print("Go forward with column", column_name)
-                else:
-                    continue
-            else:
-                continue
-
         if "AMGN" in stock:
             if "10Days" in column_name:
-                if "0" in column_name:
+                if "0," in column_name:
                     print("Go forward with column", column_name)
                 else:
                     continue
             else:
                 continue
 
+        if "AAPL" in stock:
+            continue
+
         if "TSLA" in stock:
-            if "10Days" in column_name:
-                print("Go forward with column", column_name)
-            else:
-                continue
+            continue
                               
         list_evaluation_columns = []
         for c in results.columns:
@@ -436,13 +427,11 @@ for stock in symbols:
         #Adding the first LSTM layer and some Dropout regularisation
         model.add(LSTM(units = units_LSTM, activation = "relu", return_sequences = True,
          input_shape = (X_train.shape[1], X_train.shape[2])))
-         #second LSTM blocl
+        model.add(Dropout(dropout))
+        ##second LSTM blocl
         model.add(LSTM(units = units_LSTM, activation="relu", return_sequences = True))
         model.add(Dropout(dropout))
         #third LSTM block
-        model.add(LSTM(units = units_LSTM, activation="relu", return_sequences = True))
-        model.add(Dropout(dropout))
-        #fourth LSTM block
         model.add(LSTM(units = units_LSTM, activation="relu"))
         model.add(Dropout(dropout))
         # Adding the output layer - for classification
@@ -540,6 +529,8 @@ for stock in symbols:
             print("- Test precision micro: ", test_precision_micro)
             print("- Test precision macro: ", test_precision_macro)
             print("- Test precision weighted: ", test_precision_weighted)
+            print("- Confusion Matrix: ", confusion_matrix(target_test_labels, predicted_stock_price_labels))
+
 
         
         #append variables into evaluation list for storing in results.csv

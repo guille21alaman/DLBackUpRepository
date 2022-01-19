@@ -68,7 +68,7 @@ print("#############################################\nStarting ML Experimentatio
 key = "Y7YNVWLSGI38NHOJ"
 
 #data
-symbols = ['AAPL', 'TSLA', 'AMGN']
+symbols = ['AMGN']
 
 #time series object
 ts = TimeSeries(key, output_format="pandas")
@@ -131,10 +131,18 @@ train, test = preprocess(raw_data, main_columns, cutoffDate,
  train_end, test_begin, test_end, shiftDays,
  indicators, intervals, lags, target)
 
+print(cutoffDate)
+print(train[symbols[0]+".csv"].index[0])
+# print(cutoffDate - train[symbols[0]+".csv"].index[0])
+print(train_end)
+print(train[symbols[0]+".csv"].index[-1])
+# print(train_end - train[symbols[0]+".csv"].index[-1])
 
 #CALL for train-test splits
 X_train, Y_train = X_Y_split(train) #Function located in PreprocessingML.py
 X_test, Y_test = X_Y_split(test) #Function located in PreprocessingML.py
+
+
 
 
 #CALL to analyze class imbalance
@@ -185,7 +193,7 @@ print("\n#############################################\nTraining starts...\n####
 #PARAMS
 
 #experimentation round: see experimentsDesign.md for more on each round
-exp_round = 9
+exp_round = 10
 
 #whether to save confusion matrices or not (accruacy threshold) and cv results
 #the threshold is calculated as follows:
@@ -211,8 +219,7 @@ preprocessings = [
 ]
 
 classifiers = [
-    MLPClassifier(),
-    # AdaBoostClassifier()
+    AdaBoostClassifier()
 ]
 
 
@@ -240,11 +247,9 @@ params = {
 
     #     #TimeSeries split 5- Preprocessing 2 - MLP
     0: {
-        "%s__k" %(type(preprocessings[0][1]).__name__): [50,"all"],
-        "model__max_iter": [500],
-        "model__batch_size": [64,200],
-        "model__solver": ["adam"],
-        "model__activation": ["relu"]
+        "%s__k" %(type(preprocessings[0][1]).__name__): [80],
+        "model__n_estimators": [350],
+        "model__learning_rate": [1]
     },
 
     # # #     #TimeSeries split 5- Preprocessing 2  - AdaBoost
