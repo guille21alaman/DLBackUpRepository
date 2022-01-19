@@ -219,6 +219,7 @@ col1.write("""
 sns.lineplot(df_test_simulation.iloc[:-10].index,
  df_test_simulation.iloc[:-10].adjustedClose, color="lightblue")
 plt.xticks(rotation=45)
+st.set_option('deprecation.showPyplotGlobalUse', False)
 col1.pyplot()
 
 col2.write("""
